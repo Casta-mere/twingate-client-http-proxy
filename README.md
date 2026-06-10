@@ -2,24 +2,24 @@
 
 Userspace HTTP Proxy Docker image for the official Twingate Linux client — no `NET_ADMIN`, `/dev/net/tun`, or service key required. Includes a built-in Web UI (port `8080`) for configuration and status.
 
-[![Build and Push Docker Image](https://github.com/idreamshen/twingate-client-http-proxy/actions/workflows/docker-image.yml/badge.svg)](https://github.com/idreamshen/twingate-client-http-proxy/actions/workflows/docker-image.yml)
+[![Build and Push Docker Image](https://github.com/Casta-mere/twingate-client-http-proxy/actions/workflows/docker-image.yml/badge.svg)](https://github.com/Casta-mere/twingate-client-http-proxy/actions/workflows/docker-image.yml)
 
 ## User Guide
 
 ### Pull & Run
 
 ```bash
-docker pull ghcr.io/idreamshen/twingate-client-http-proxy:latest
+docker pull ghcr.io/casta-mere/twingate-client-http-proxy:latest
 
 docker run -d --name twingate-client-http-proxy \
-  -p 127.0.0.1:9999:9999 \
-  -p 127.0.0.1:8080:8080 \
-  ghcr.io/idreamshen/twingate-client-http-proxy:latest
+  -p 127.0.0.1:7575:9999 \
+  -p 127.0.0.1:7576:8080 \
+  ghcr.io/casta-mere/twingate-client-http-proxy:latest
 ```
 
 ### Web UI (recommended)
 
-Open http://127.0.0.1:8080 in your browser.
+Open http://127.0.0.1:7576 in your browser.
 
 <img width="326" height="338" alt="image" src="https://github.com/user-attachments/assets/8b4f0d2e-4bb7-414d-89a6-a10edec68d56" />
 
@@ -51,7 +51,7 @@ docker exec -it twingate-client-http-proxy twingate stop
 Once the container is running, any client configured to use an HTTP proxy can connect:
 
 ```bash
-curl --proxy http://127.0.0.1:9999 https://example.com
+curl --proxy http://127.0.0.1:7575 https://example.com
 ```
 
 ## Development Guide

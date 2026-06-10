@@ -1,0 +1,8 @@
+services:
+  twingate-client-http-proxy:
+    image: ghcr.io/casta-mere/twingate-client-http-proxy:latest
+    container_name: twingate-client-http-proxy
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:7575:9999"
+      - "127.0.0.1:7576:8080"
