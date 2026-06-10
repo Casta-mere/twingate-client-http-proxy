@@ -15,7 +15,6 @@ STATIC_DIR = os.path.dirname(os.path.abspath(__file__))
 
 NETWORK_FILE = '/etc/twingate/webui-network'
 PROFILES_DIR = '/var/lib/twingate/profiles'
-CLASH_RULES_FILE = os.path.join(STATIC_DIR, 'rule-twingate.yaml')
 
 MIME_MAP = {
     '.html': 'text/html; charset=utf-8',
@@ -75,8 +74,8 @@ def get_resources():
 def generate_clash_rules():
     out, rc = run_cmd(['twingate', 'resources'])
     if rc != 0:
-        log('CLASH: skipping rule generation, resources unavailable')
-        return
+        log('CLASH: resources unavailable, returning empty rules')
+        return 'payload: []\n'
 
     cidr_re = re.compile(r'\b(\d{1,3}(?:\.\d{1,3}){3}/\d{1,2})\b')
     ip_re = re.compile(r'\b(\d{1,3}(?:\.\d{1,3}){3})\b')
@@ -105,8 +104,8 @@ def generate_clash_rules():
                 rules.append(f'  - DOMAIN-SUFFIX,{val}')
 
     content = 'payload:\n' + '\n'.join(rules) + '\n' if rules else 'payload: []\n'
-    write_file(CLASH_RULES_FILE, content)
-    log(f'CLASH: wrote {len(rules)} rules -> {CLASH_RULES_FILE}')
+    log(f'CLASH: generated {len(rules)} rules')
+    return content
 
 
 def do_login(network):
@@ -117,7 +116,6 @@ def do_login(network):
     setup_input = f'A\n{network}\n{network}\nn\nn\ny\ny\n'
     run_cmd(['twingate', 'setup'], input_data=setup_input)
     run_cmd(['twingate', 'start'])
-    generate_clash_rules()
     log('LOGIN: done')
 
 
@@ -148,6 +146,16 @@ class Handler(http.server.BaseHTTPRequestHandler):
             return
         if self.path == '/config':
             self._json({'network': read_file(NETWORK_FILE)})
+            return
+        if self.path == '/rule-twingate.yaml':
+            content = generate_clash_rules()
+            body = (content or 'payload: []\n').encode()
+            self.send_response(200)
+            self.send_header('Content-Type', 'text/yaml; charset=utf-8')
+            self.send_header('Content-Disposition', 'attachment; filename="rule-twingate.yaml"')
+            self.send_header('Content-Length', str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
             return
         self._serve_static(self.path)
 
