@@ -3,6 +3,7 @@ import datetime
 import http.server
 import json
 import os
+import re
 import subprocess
 import sys
 
@@ -14,6 +15,7 @@ STATIC_DIR = os.path.dirname(os.path.abspath(__file__))
 
 NETWORK_FILE = '/etc/twingate/webui-network'
 PROFILES_DIR = '/var/lib/twingate/profiles'
+CLASH_RULES_FILE = os.path.join(STATIC_DIR, 'rule-twingate.yaml')
 
 MIME_MAP = {
     '.html': 'text/html; charset=utf-8',
@@ -70,6 +72,43 @@ def get_resources():
     return out, rc
 
 
+def generate_clash_rules():
+    out, rc = run_cmd(['twingate', 'resources'])
+    if rc != 0:
+        log('CLASH: skipping rule generation, resources unavailable')
+        return
+
+    cidr_re = re.compile(r'\b(\d{1,3}(?:\.\d{1,3}){3}/\d{1,2})\b')
+    ip_re = re.compile(r'\b(\d{1,3}(?:\.\d{1,3}){3})\b')
+    domain_re = re.compile(r'\b((?:[a-zA-Z0-9-]+\.)+[a-zA-Z]{2,})\b')
+
+    rules = []
+    seen = set()
+
+    for line in out.splitlines():
+        for m in cidr_re.finditer(line):
+            val = m.group(1)
+            if val not in seen:
+                seen.add(val)
+                rules.append(f'  - IP-CIDR,{val},no-resolve')
+
+        for m in ip_re.finditer(cidr_re.sub('', line)):
+            val = m.group(1)
+            if val not in seen:
+                seen.add(val)
+                rules.append(f'  - IP-CIDR,{val}/32,no-resolve')
+
+        for m in domain_re.finditer(line):
+            val = m.group(1).lower()
+            if val not in seen and not ip_re.fullmatch(val):
+                seen.add(val)
+                rules.append(f'  - DOMAIN-SUFFIX,{val}')
+
+    content = 'payload:\n' + '\n'.join(rules) + '\n' if rules else 'payload: []\n'
+    write_file(CLASH_RULES_FILE, content)
+    log(f'CLASH: wrote {len(rules)} rules -> {CLASH_RULES_FILE}')
+
+
 def do_login(network):
     log(f'LOGIN: network={network}')
     run_cmd(['twingate', 'stop'])
@@ -78,6 +117,7 @@ def do_login(network):
     setup_input = f'A\n{network}\n{network}\nn\nn\ny\ny\n'
     run_cmd(['twingate', 'setup'], input_data=setup_input)
     run_cmd(['twingate', 'start'])
+    generate_clash_rules()
     log('LOGIN: done')
 
 

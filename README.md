@@ -61,6 +61,16 @@ Once the container is running, any client configured to use an HTTP proxy can co
 curl --proxy http://127.0.0.1:7575 https://example.com
 ```
 
+### Clash Integration
+
+After login, a Clash rule file is automatically generated from your Twingate resources and served at:
+
+```
+http://127.0.0.1:7576/rule-twingate.yaml
+```
+
+Reference it as a [rule provider](https://wiki.metacubex.one/en/config/rule-providers/) in your Clash config pointing traffic to the proxy on port `7575`.
+
 ## Development Guide
 
 ### Build Locally
