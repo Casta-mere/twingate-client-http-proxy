@@ -6,14 +6,21 @@ Userspace HTTP Proxy Docker image for the official Twingate Linux client — no 
 
 ## User Guide
 
+### Docker Compose (recommended)
+
+```bash
+curl -o docker-compose.yaml https://raw.githubusercontent.com/Casta-mere/twingate-client-http-proxy/main/docker-compose.yaml
+docker compose up -d
+```
+
 ### Pull & Run
 
 ```bash
 docker pull ghcr.io/casta-mere/twingate-client-http-proxy:latest
 
 docker run -d --name twingate-client-http-proxy \
-  -p 127.0.0.1:7575:9999 \
-  -p 127.0.0.1:7576:8080 \
+  -p 7575:9999 \
+  -p 7576:8080 \
   ghcr.io/casta-mere/twingate-client-http-proxy:latest
 ```
 
