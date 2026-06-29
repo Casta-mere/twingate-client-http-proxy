@@ -14,7 +14,12 @@ PORT = int(PORT)
 STATIC_DIR = os.path.dirname(os.path.abspath(__file__))
 
 NETWORK_FILE = '/etc/twingate/webui-network'
+PROXY_FILE = '/etc/twingate/webui-proxy'
 PROFILES_DIR = '/var/lib/twingate/profiles'
+
+# Keep loopback / LAN traffic off the proxy so the local twingate socket and
+# status calls are never funneled through it.
+DEFAULT_NO_PROXY = 'localhost,127.0.0.1,::1,192.168.0.0/16,10.0.0.0/8'
 
 MIME_MAP = {
     '.html': 'text/html; charset=utf-8',
@@ -39,6 +44,37 @@ def write_file(path, content):
 def log(msg):
     ts = datetime.datetime.now().isoformat(timespec='seconds')
     print(f'[{ts}] {msg}', flush=True)
+
+
+def normalize_proxy(proxy):
+    """Trim and default a bare host:port to an http:// URL. Empty -> direct."""
+    proxy = (proxy or '').strip()
+    if proxy and '://' not in proxy:
+        proxy = 'http://' + proxy
+    return proxy
+
+
+def current_proxy():
+    """UI-managed file wins; otherwise fall back to the inherited env once."""
+    saved = read_file(PROXY_FILE)
+    if saved:
+        return saved
+    if not os.path.exists(PROXY_FILE):
+        return os.environ.get('HTTPS_PROXY') or os.environ.get('HTTP_PROXY') or ''
+    return ''
+
+
+def apply_proxy_env(proxy):
+    """Set/clear the proxy env vars inherited by twingate subprocesses."""
+    proxy = normalize_proxy(proxy)
+    for var in ('HTTPS_PROXY', 'https_proxy', 'HTTP_PROXY', 'http_proxy'):
+        if proxy:
+            os.environ[var] = proxy
+        else:
+            os.environ.pop(var, None)
+    os.environ.setdefault('NO_PROXY', DEFAULT_NO_PROXY)
+    os.environ['no_proxy'] = os.environ['NO_PROXY']
+    log(f'PROXY: upstream={proxy or "(direct)"}')
 
 def run_cmd(cmd, input_data=None):
     label = ' '.join(cmd)
@@ -108,8 +144,12 @@ def generate_clash_rules():
     return content
 
 
-def do_login(network):
+def do_login(network, proxy=None):
     log(f'LOGIN: network={network}')
+    if proxy is not None:
+        proxy = normalize_proxy(proxy)
+        write_file(PROXY_FILE, proxy)
+        apply_proxy_env(proxy)
     run_cmd(['twingate', 'stop'])
     clear_profiles()
     write_file(NETWORK_FILE, network)
@@ -145,7 +185,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
             self._json({'ok': rc == 0, 'resources': s})
             return
         if self.path == '/config':
-            self._json({'network': read_file(NETWORK_FILE)})
+            self._json({'network': read_file(NETWORK_FILE), 'proxy': current_proxy()})
             return
         if self.path == '/rule-twingate.yaml':
             content = generate_clash_rules()
@@ -174,7 +214,10 @@ class Handler(http.server.BaseHTTPRequestHandler):
         if not network:
             self._json({'ok': False, 'error': 'network is required'}, 400)
             return
-        do_login(network)
+        # proxy is optional; key absent -> leave current proxy unchanged,
+        # key present (even empty) -> update it ('' means direct).
+        proxy = params.get('proxy')
+        do_login(network, proxy)
         self._json({'ok': True})
 
     def _serve_static(self, path):
@@ -208,6 +251,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
 
 
 if __name__ == '__main__':
+    apply_proxy_env(current_proxy())
     log(f'Server starting on {HOST}:{PORT}')
     server = http.server.HTTPServer((HOST, PORT), Handler)
     log('Server ready')
