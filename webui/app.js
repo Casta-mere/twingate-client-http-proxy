@@ -99,3 +99,43 @@ document.getElementById('login-form').addEventListener('submit', async function(
   btn.disabled = false;
   btn.textContent = 'Login';
 });
+
+// --- Clash Acceleration Setup: generate a copy-paste override ---
+const ovGen = document.getElementById('ov-gen');
+if (ovGen) {
+  const out = document.getElementById('ov-out');
+  const msg = document.getElementById('ov-msg');
+  const field = id => document.getElementById(id).value.trim();
+
+  ovGen.addEventListener('click', async function () {
+    const q = new URLSearchParams({
+      host: field('ov-host'), port: field('ov-port'), node: field('ov-node'),
+      region: field('ov-region'), process: field('ov-process'),
+      domains: field('ov-domains'),
+    });
+    msg.textContent = 'Generating...';
+    msg.className = 'message info';
+    try {
+      const r = await fetch('/clash-override.yaml?' + q.toString());
+      out.textContent = await r.text();
+      out.style.display = 'block';
+      msg.textContent = 'Generated — review, then Copy into your Clash override.';
+      msg.className = 'message info';
+    } catch {
+      msg.textContent = 'Failed to generate.';
+      msg.className = 'message error';
+    }
+  });
+
+  document.getElementById('ov-copy').addEventListener('click', async function () {
+    if (!out.textContent) { msg.textContent = 'Generate first.'; msg.className = 'message error'; return; }
+    try {
+      await navigator.clipboard.writeText(out.textContent);
+      msg.textContent = 'Copied to clipboard.';
+      msg.className = 'message info';
+    } catch {
+      msg.textContent = 'Copy failed — select the text manually.';
+      msg.className = 'message error';
+    }
+  });
+}

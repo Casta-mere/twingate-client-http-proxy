@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Twingate Client Web UI</title>
+<link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAANlBMVEUSExWIiYowMTJiYmRMaXH///8SExUUFBgTExUSExXw8PEhIiPh4eKYmJnLy8x5entISUu1trbct6agAAAACnRSTlPv////AP//IL+vQWOFmgAAAAlwSFlzAAALEwAACxMBAJqcGAAAAKZJREFUeNq90zkOAyEMBVAw2OxL7n/ZGCapYjxJExdT8J8spPkYH6Kh06TgTTjHPBwnUicaPSdzB+gTOFBBaagCqKiCkXEDcCLg9Ty5kMtWAms9YoflRLDzRtBRBnOtd7weD8DyudvfM+jv/ATsdQ8FAP4PuBtQSQbjBfIUQR50gQ7i715N2qCVcx8Y1Kl1EvBR1NLC+KLVvz4ME/U83T9eH5KyPvgnL6EXWbr3xO4AAAAASUVORK5CYII=">
 <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
@@ -34,6 +35,28 @@
 <h2>Clash Rules</h2>
 <p class="card-desc">Auto-generated from your Twingate resources after login.</p>
 <a id="clash-download" class="btn-download" href="/rule-twingate.yaml" download="rule-twingate.yaml">Download rule-twingate.yaml</a>
+</div>
+
+<div class="card">
+<h2>Clash Acceleration Setup</h2>
+<p class="card-desc">Generate a copy-paste <strong>Clash Party override</strong> that routes your Twingate resources through this proxy <em>and</em> accelerates the data relay through a fast node. The relay port range and resource domains are auto-detected. <strong>Requires Clash TUN mode.</strong></p>
+<details class="fields">
+<summary>Options <span class="hint">— defaults suit a local Mac run</span></summary>
+<div class="grid2">
+<div><label for="ov-host">Proxy host</label><input type="text" id="ov-host" value="127.0.0.1"><small>Local run: <code>127.0.0.1</code>. Remote container: its LAN/Tailscale IP.</small></div>
+<div><label for="ov-port">Proxy port</label><input type="text" id="ov-port" value="7575"><small>The mapped proxy port.</small></div>
+<div><label for="ov-node">Node group name</label><input type="text" id="ov-node" value="Singapore"><small>Name for the accel group.</small></div>
+<div><label for="ov-region">Node filter (regex)</label><input type="text" id="ov-region" value="singapore|🇸🇬|新加坡"><small>Matches your subscription's node names (any language/flag).</small></div>
+<div><label for="ov-process">Docker process</label><input type="text" id="ov-process" value="com.docker.backend"><small>macOS Docker Desktop. Windows differs; native Linux N/A.</small></div>
+<div><label for="ov-domains">Accelerate domains</label><input type="text" id="ov-domains" value="" placeholder="e.g. account.example.com"><small>Optional, comma-separated; also sent via the node (for resources not on the relay ports).</small></div>
+</div>
+</details>
+<div class="toggle-row">
+<button type="button" id="ov-gen">Generate</button>
+<button type="button" id="ov-copy">Copy</button>
+<span id="ov-msg" class="message"></span>
+</div>
+<pre id="ov-out" style="display:none"></pre>
 </div>
 
 <script src="/app.js"></script>
