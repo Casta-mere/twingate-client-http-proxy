@@ -6,8 +6,6 @@ pre a { color: #0066cc; text-decoration: underline; }
 pre#status { background: #fff; border: 1px solid #ddd; min-height: 3rem; }
 pre#resources { white-space: pre; word-break: normal; }
 label { display: block; margin-bottom: 0.25rem; font-weight: 600; }
-small + label { margin-top: 1rem; }
-.optional { font-weight: 400; color: #888; font-size: 0.85em; }
 input[type=text] { width: 100%; padding: 0.5rem; font-size: 1rem; border: 1px solid #ccc; border-radius: 4px; }
 input[type=text]:focus { border-color: #0066cc; outline: none; box-shadow: 0 0 0 2px rgba(0,102,204,0.2); }
 button { padding: 0.5rem 1.5rem; font-size: 1rem; cursor: pointer; background: #0066cc; color: #fff; border: none; border-radius: 4px; }

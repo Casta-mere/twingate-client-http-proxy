@@ -31,11 +31,8 @@ Open http://127.0.0.1:7576 in your browser.
 <img width="326" height="338" alt="image" src="https://github.com/user-attachments/assets/8b4f0d2e-4bb7-414d-89a6-a10edec68d56" />
 
 1. Enter your **Twingate network name** (e.g. `acme` for `acme.twingate.com`).
-2. *(Optional)* Set an **Upstream Proxy** if the Twingate control API isn't directly reachable from the host (e.g. behind a regional firewall). The client's HTTPS calls are routed through it. A bare `host:port` defaults to `http://`; `socks5://` is also supported. Leave blank for a direct connection.
-3. Click **Login** — this runs `twingate setup` and `twingate start` automatically.
-4. The **Status** and **Resources** areas poll automatically every 2 seconds, showing `twingate status` and `twingate resources` output.
-
-> The upstream proxy is persisted to `/etc/twingate/webui-proxy` and re-applied on restart. You can also seed it via the standard `HTTPS_PROXY` / `HTTP_PROXY` environment variables in `docker-compose.yaml`; the Web UI value takes precedence once set.
+2. Click **Login** — this runs `twingate setup` and `twingate start` automatically.
+3. The **Status** and **Resources** areas poll automatically every 2 seconds, showing `twingate status` and `twingate resources` output.
 
 ### CLI (alternative)
 

@@ -59,7 +59,6 @@ startPolling(2000);
 
 fetch('/config').then(r => r.json()).then(data => {
   document.getElementById('network').value = data.network || '';
-  document.getElementById('proxy').value = data.proxy || '';
 }).catch(() => {});
 
 document.getElementById('login-form').addEventListener('submit', async function(e) {
@@ -67,7 +66,6 @@ document.getElementById('login-form').addEventListener('submit', async function(
   const btn = document.getElementById('login-btn');
   const msg = document.getElementById('login-message');
   const network = document.getElementById('network').value;
-  const proxy = document.getElementById('proxy').value;
 
   btn.disabled = true;
   btn.textContent = 'Logging in...';
@@ -79,7 +77,7 @@ document.getElementById('login-form').addEventListener('submit', async function(
     const r = await fetch('/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ network, proxy })
+      body: JSON.stringify({ network })
     });
     const data = await r.json();
     ok = data.ok;
